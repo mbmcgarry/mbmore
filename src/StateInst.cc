@@ -244,7 +244,7 @@ bool StateInst::DecidePursuit() {
 	// If constants is a single element and it's value is not 0, +1, -1
 	// then there should be no change
 	if ((constants.size() > 1) && (constants[1] == context()->time())){
-	  int new_val = std::round(constants[0]);
+	  int new_val = round(constants[0]);
 	  std::cout << "INT new conflict value is " << new_val << std::endl;
 	  pseudo_region->ChangeConflictFactor("Pursuit", proto,
 					      relation, new_val); 
