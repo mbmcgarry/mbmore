@@ -56,9 +56,23 @@ void InteractRegion::EnterNotify() {
   //If conflict is defined, record initial conflict relations in database
   if (p_present["Conflict"] == true){
     std::string eqn_type = "Pursuit";
+    /*
     for (auto const &ent1 : p_conflict_map) {
       for (auto const &ent2 : ent1.second){
 	RecordConflictFactor(eqn_type, ent1.first, ent2.first, ent2.second);
+      }
+    }
+    */
+    std::map<std::string, std::map<std::string, int> >::iterator ms_it;
+    for (ms_it = p_conflict_map.begin();
+	 ms_it != p_conflict_map.end(); ++ms_it) {
+      std::string my_state = ms_it->first;
+      std::map<std::string, int>::iterator os_it;
+      for (os_it = ms_it->second.begin();
+	   os_it != ms_it->second.end(); ++os_it) {
+	std::string other_state = os_it->first;
+	int cur_val = os_it->second;
+    	RecordConflictFactor(eqn_type, my_state, other_state, cur_val);
       }
     }
   }
