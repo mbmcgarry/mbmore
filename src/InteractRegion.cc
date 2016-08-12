@@ -79,6 +79,32 @@ void InteractRegion::EnterNotify() {
     }
   }
 }
+
+
+  /*
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void InteractRegion::Tick() {
+  // If any state has proliferated since the last time step, then adjust
+  // factors of other states in response
+
+  using cyclus::Agent;
+  // TODO: Check all children of the simulation.
+  //Are any prototypes "SecretSink"? Then ++ conflict with all other states
+
+  int np = 0;
+  Agent* me = this;
+  std::set<cyclus::Agent*>::iterator cit;
+  for (cit = cyclus::Agent::children().begin();
+       cit != cyclus::Agent::children().end();
+       ++cit) {
+    Agent* a = *cit;
+    if (a->prototype() == "SecretSink"){
+      np++;
+    }
+
+}
+  */
+
  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Determines which factors are defined for this sim
 std::map<std::string, bool>
@@ -148,25 +174,32 @@ double InteractRegion::GetInteractFactor(std::string eqn_type,
 					 std::string factor,
 					 std::string prototype) {
     
-  std::map<std::string, std::map<std::string, int> > relations_map ;
+  std::map<std::string, std::map<std::string, double> > relations_map ;
   if ((eqn_type == "Pursuit") && (factor == "Conflict")){
     relations_map = p_conflict_map;
   }
-  std::map<std::string, int> relations = relations_map[prototype];
-  std::map<std::string, int>::iterator map_it;
-  int net_relation = 0;
+  std::map<std::string, double> relations = relations_map[prototype];
+  std::map<std::string, double>::iterator map_it;
+  double net_relation = 0;
   for(map_it = relations.begin(); map_it != relations.end(); map_it++) {
     net_relation += map_it->second;
   }
 
   double fractional_val = static_cast<double>(net_relation)/relations.size();
   double scaled_val;
+
+  // Convert from [-2,2] to [10,0]
+  scaled_val = 2.5*(2.0 - fractional_val);
+
+  /*
   if (fractional_val <= 0.0) {
     scaled_val = fractional_val*(-5.0) + 5.0;
   }
   else {
     scaled_val = 5.0 - fractional_val*5.0;
   }
+  */
+
   //  std::cout << "raw conflict: " << fractional_val << "  scaled conflict:" << scaled_val << std::endl;
   return scaled_val;
 }
@@ -177,7 +210,8 @@ double InteractRegion::GetInteractFactor(std::string eqn_type,
 // states may have different perspectives on their relationship.
 void InteractRegion::ChangeConflictFactor(std::string eqn_type,
 					  std::string this_state,
-					  std::string other_state, int new_val){
+					  std::string other_state,
+					  double new_val){
   if (eqn_type == "Pursuit"){
     p_conflict_map[this_state][other_state] = new_val;
     RecordConflictFactor(eqn_type, this_state, other_state, new_val);
@@ -192,7 +226,8 @@ void InteractRegion::ChangeConflictFactor(std::string eqn_type,
 // whenever they are changed 
 void InteractRegion::RecordConflictFactor(std::string eqn_type,
 					  std::string this_state,
-					  std::string other_state, int new_val){
+					  std::string other_state,
+					  double new_val){
   using cyclus::Context;
   using cyclus::Recorder;
 
@@ -202,6 +237,30 @@ void InteractRegion::RecordConflictFactor(std::string eqn_type,
   d->AddVal("SecondaryAgent", other_state);
   d->AddVal("Conflict", new_val);
   d->Record();
+}
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// Change the Conflict value for a state. If the simulation is symmetric,
+// then the change in conflict value is mutual between the two states. Otherwise
+// only the state whose change was initiated is affected, such that the two
+// states may have different perspectives on their relationship.
+
+  void InteractRegion::GetNewProlifConflict(std::string prolif_state){
+  std::string eqn_type = "Pursuit";
+  for (auto const &state_it : p_conflict_map[prolif_state]){
+    std::string affected_state = state_it.first;
+    double cur_val = state_it.second;
+    double new_val;
+    if (cur_val > 0){
+      new_val = 2;
+    } else if (cur_val == 0){
+      new_val = -1;
+    } else {
+      new_val = -2;
+    }
+    // If symmetric is off, then change will effect the other state's
+    // perception of relationship. (If symmetric On then both are affected)
+    ChangeConflictFactor("Pursuit", affected_state, prolif_state, new_val);
+  }
 }
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 std::string InteractRegion::str() {

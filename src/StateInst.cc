@@ -112,6 +112,7 @@ void StateInst::Tick() {
   
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void StateInst::Tock() {
+  using cyclus::Agent;
   // Has a secret sink already been deployed?
   // TODO:: How to force SecretEnrich to trade Only with SecretSink??
 
@@ -131,6 +132,15 @@ void StateInst::Tock() {
 					  << context()->time() << ".";
       DeploySecret();
       pursuing = 1;
+
+      // TODO: Move this to Acquire instead of Pursue
+      // If state acquires a weapon, it will affect the conflict relation
+      // with all other neighboring states.
+      Agent* me = this;
+      std::string proto = me->prototype();
+      InteractRegion* pseudo_region =
+	dynamic_cast<InteractRegion*>(this->parent());
+      pseudo_region->GetNewProlifConflict(proto);
     }
   }
    
