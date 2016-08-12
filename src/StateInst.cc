@@ -248,7 +248,8 @@ bool StateInst::DecidePursuit() {
 	std::string proto = me->prototype();
 	factor_curr_y =
 	  pseudo_region->GetInteractFactor("Pursuit", factor, proto);
-	// Then check conflict value to see if it needs to change
+	// Then check conflict value to see if init condns require change at
+	// this time.
 	// If constants is a single element and it's value is not 0, +1, -1
 	// then there should be no change
 	if ((constants.size() > 1) && (constants[1] == context()->time())){

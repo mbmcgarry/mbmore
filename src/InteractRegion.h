@@ -67,13 +67,15 @@ class InteractRegion
   // time
   virtual void ChangeConflictFactor(std::string eqn_type,
 				    std::string this_state,
-				    std::string other_state, double new_val);
+				    std::string other_state,
+				    int new_val);
 
   // Records conflict value at beginning of simulation and any time the conflict
   // relation changes
   virtual void RecordConflictFactor(std::string eqn_type,
 				    std::string this_state,
-				    std::string other_state, double new_val);
+				    std::string other_state,
+				    int new_val);
   
   // When a state acquires a weapon, adjust conflict scores for all other
   // states accordingly
@@ -119,7 +121,7 @@ bool symmetric;
            "relations to each other state as the map values." \
            "Choices are +1 (allies), 0 (neutral), -1 (enemies)",	 \
     }
-  std::map<std::string, std::map<std::string, double> > p_conflict_map ;
+  std::map<std::string, std::map<std::string, int> > p_conflict_map ;
 
 
 // Defines persistent column names in WeaponProgress table of database
@@ -131,9 +133,6 @@ static std::vector<std::string> column_names;
 std::map<std::string, bool> p_present;
 std::map<std::string, bool> a_present;
 
-// Tracks number of newly proliferant states
-int n_prolif = 0;
- 
 }; //cyclus::Region
 
 }  // namespace mbmore
